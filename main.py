@@ -1,5 +1,8 @@
 import subprocess
+import os
+import shutil
 
+shutil.rmtree('output_images')
 # Путь к папке с детекторами
 detect_folder = 'detect'
 
