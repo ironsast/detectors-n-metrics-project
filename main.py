@@ -1,26 +1,30 @@
 import subprocess
 import os
 import shutil
+import time
+from datetime import datetime
 
-if os.path.exists('output_images'):
-    shutil.rmtree('output_images')
-# Путь к папке с детекторами
-detect_folder = 'detect'
+def run_scripts(folder, scripts):
+    for script in scripts:
+        subprocess.run(f"python {script}", cwd=folder, shell=True, check=True)
 
-# Запуск скрипта detect-density-relay.py
-subprocess.run("python detect-density-relay.py", cwd=detect_folder, shell=True)
+while True:
 
-# Запуск скрипта detect-voltage-transformator.py
-subprocess.run("python detect-voltage-transformator.py", cwd=detect_folder, shell=True)
+    detect_folder = 'detect'
+    run_scripts(detect_folder, [
+        'detect.py',
+        'upscale.py'
+    ])
 
-# Запуск скрипта upscale
-subprocess.run("python upscale.py", cwd=detect_folder, shell=True)
+    metrics_folder = 'metrics'
+    run_scripts(metrics_folder, [
+        'metrics-density-relay.py',
+        'metrics-voltage-transformator.py'
+    ])
 
-# Путь к папке с метриками
-detect_folder = 'metrics'
+    os.system('cls' if os.name == 'nt' else 'clear')
 
-# Запуск скрипта metrics-density-relay.py
-subprocess.run("python metrics-density-relay.py", cwd=detect_folder, shell=True)
+    last_processing_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"Последняя проверка завершена в: {last_processing_time}. В ожидании новых данных.")
 
-# Запуск скрипта metrics-voltage-transformator.py
-subprocess.run("python metrics-voltage-transformator.py", cwd=detect_folder, shell=True)
+    time.sleep(15)

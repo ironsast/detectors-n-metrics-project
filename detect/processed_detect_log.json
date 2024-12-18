@@ -1,0 +1,20 @@
+{
+    "detect-density-relay.pt": [
+        "vi1",
+        "vi2",
+        "vi3",
+        "vi4",
+        "vi5",
+        "vi6",
+        "vi7"
+    ],
+    "detect-voltage-transformator.pt": [
+        "vi1",
+        "vi2",
+        "vi3",
+        "vi4",
+        "vi5",
+        "vi6",
+        "vi7"
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "confidence_threshold": 0.5,
+    "interval_seconds": 1,
+    "input_folder": "../input_videos",
+    "output_folder": "../output_images",
+    "model_paths": ["detect-density-relay.pt", "detect-voltage-transformator.pt"],
+    "class_rename_map": {
+        "gauges": "density-relay",
+        "voltage-transformer": "voltage-transformator"
+    }
+}

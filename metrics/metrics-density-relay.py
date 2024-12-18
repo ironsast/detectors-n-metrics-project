@@ -173,4 +173,3 @@ def uni_process_images(input_folder, sensor_type, confidence_threshold=0.5):
     
 input_folder = '../output_images'
 uni_process_images(input_folder, sensor_type='density-relay', confidence_threshold=0.5)
-
