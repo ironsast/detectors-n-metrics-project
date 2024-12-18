@@ -2,7 +2,8 @@
   "model_path_vt": "metrics-voltage-transformator.pt",
   "model_path_dr": "metrics-density-relay.pt",
   "confidence_threshold": 0.5,
-  "sensor_type": "density-relay",
+  "sensor_type_dr": "density-relay",
+  "sensor_type_vt": "voltage-transformator",
   "input_folder": "../output_images",
   "highlight_color": [0, 255, 255]
 }

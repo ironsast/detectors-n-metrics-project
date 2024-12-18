@@ -8,9 +8,14 @@ from tqdm import tqdm
 from PIL import Image, ImageDraw, ImageFont
 import shutil
 import math
+import json
 
-model = YOLO(r"metrics-voltage-transformator.pt")
-highlight_color = (0, 255, 255)
+# Загрузка конфигурации
+with open('config.json', 'r') as file:
+    config = json.load(file)
+
+model = YOLO(config['model_path_vt'])  # Используем путь из конфигурации
+highlight_color = tuple(config['highlight_color'])  # Цвет выделения
 
 def append_data_to_file(file_path, image_name, data_dict):
     with open(file_path, 'a') as file: 
@@ -75,7 +80,7 @@ def draw_parallelogram(image, minpos, maxpos, level_box):
     cv2.line(image, (level_center_x, minpos_y), (level_center_x, maxpos_y), (0, 255, 255), 2)
     return minpos_y, maxpos_y, level_center_x  
 
-def process_image(image_path, confidence_threshold=0.5):
+def process_image(image_path, confidence_threshold=config['confidence_threshold']):
     image = cv2.imread(image_path)
     results = model(image, verbose=False)[0] 
     image = results.orig_img
@@ -135,7 +140,7 @@ def process_image(image_path, confidence_threshold=0.5):
             os.remove(image_path)
 
 
-def uni_process_images(input_folder, sensor_type, confidence_threshold=0.5):
+def uni_process_images(input_folder, sensor_type, confidence_threshold=config['confidence_threshold']):
     image_paths = []
     for root, dirs, files in os.walk(input_folder):
         for file in files:
@@ -169,5 +174,5 @@ def uni_process_images(input_folder, sensor_type, confidence_threshold=0.5):
                 with open(metrics_file_path, 'w') as file:
                     file.write("Ничего не обнаружено.\n")
 
-input_folder = r'../output_images'
-uni_process_images(input_folder, sensor_type="voltage-transformator", confidence_threshold=0.5)  
+input_folder = config['input_folder']  # Путь к папке с изображениями из конфигурации
+uni_process_images(input_folder, sensor_type=config['sensor_type_vt'], confidence_threshold=config['confidence_threshold'])

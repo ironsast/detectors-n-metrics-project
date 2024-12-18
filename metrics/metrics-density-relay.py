@@ -1,3 +1,4 @@
+import json
 from ultralytics import YOLO
 import cv2
 import os
@@ -7,9 +8,17 @@ import math
 from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
+# Загрузка конфигурации
+with open('config.json', 'r', encoding='utf-8') as config_file:
+    config = json.load(config_file)
 
-model = YOLO(r"metrics-density-relay.pt")
-highlight_color = (0, 255, 255)
+model_path = config['model_path_dr']  # Использование модели для 'density-relay'
+highlight_color = tuple(config['highlight_color'])  # Цвет выделения
+confidence_threshold = config['confidence_threshold']
+sensor_type = config['sensor_type_dr']
+input_folder = config['input_folder']
+
+model = YOLO(model_path)
 
 def append_data_to_file(file_path, image_name, data_dict):
     with open(file_path, 'a') as file:
@@ -137,23 +146,26 @@ def process_image(image_path, confidence_threshold=0.5):
 
 def uni_process_images(input_folder, sensor_type, confidence_threshold=0.5):
     image_paths = []
+    txt_file_paths = []
+
+    # Проходим по всем папкам и файлам в директории
     for root, dirs, files in os.walk(input_folder):
+        # Проверяем, есть ли в папке только два изображения и один текстовый файл
+        if len(files) == 3 and any(file.lower().endswith(('png', 'jpg')) for file in files) and any(file.lower() == "all_metrics.txt" for file in files):
+            continue  # Пропускаем эту папку
+
+        # Собираем все пути к изображениям и текстовым файлам для обработки
         for file in files:
             if sensor_type.lower() in file.lower() and 'metrics_' not in file.lower() and file.lower().endswith(('png', 'jpg')):
                 image_paths.append(os.path.join(root, file))
+            if file == "all_metrics.txt":
+                txt_file_paths.append(os.path.join(root, file))
     
+    # Далее продолжаем обработку изображений, как раньше
     for image_path in tqdm(image_paths, desc=f"Обработка изображений для {sensor_type}", unit=" изображение"):
         process_image(image_path, confidence_threshold)
         
-    txt_file_paths = []
-    image_paths = []
-    for root, dirs, files in os.walk(input_folder):
-        for file in files:
-            if file == "all_metrics.txt":
-                txt_file_paths.append(os.path.join(root, file))
-            if sensor_type.lower() in file.lower() and file.lower().endswith(('png', 'jpg')):
-                image_paths.append(os.path.join(root, file))
-
+    # Чтение и выбор лучшего изображения на основе метрик
     for txt_file_path in txt_file_paths:
         if list(extract_metrics_from_file(txt_file_path)):
             best_image = choose_best_image(txt_file_path)
@@ -164,12 +176,13 @@ def uni_process_images(input_folder, sensor_type, confidence_threshold=0.5):
                     if os.path.basename(image_path) != best_image and os.path.basename(image_path) != "metrics_" + best_image and os.path.exists(image_path):
                         os.remove(image_path)
                     
+    # Создание файла с метками, если папка пуста
     for root, dirs, files in os.walk(input_folder):
         if not files and not dirs:
             metrics_file_path = os.path.join(root, "all_metrics.txt")
             if not os.path.exists(metrics_file_path):
                 with open(metrics_file_path, 'w') as file:
                     file.write("Ничего не обнаружено.\n")
-    
-input_folder = '../output_images'
-uni_process_images(input_folder, sensor_type='density-relay', confidence_threshold=0.5)
+
+# Запуск функции для обработки изображений
+uni_process_images(input_folder, sensor_type=sensor_type, confidence_threshold=confidence_threshold)
